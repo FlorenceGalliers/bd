@@ -1,0 +1,76 @@
+---
+title: "An Application of Big Data"
+subtitle: "Scalability and cost-effectiveness analysis of whole genome-wide association studies on Google Cloud Platform and Amazon Web Services" 
+author: "Florence Galliers"
+date: "12/02/2021"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+#setwd("/Users/florentinagalliers/Google Drive/Harper/8-C7084/presentation")
+require(knitr)
+```
+
+## Overview
+- Problem Outline
+- Objective
+- Data
+- Analysis
+- Comments
+
+
+## What is the problem???
+-  
+-  
+-  
+
+
+## Objective
+***Here***
+
+## Data
+
+
+## Approach and Analysis
+
+
+## Comments
+
+
+
+
+
+
+
+
+```{r}
+Project <- c("1KG Phase 1",
+             "1KG Phase 3",
+             "COPD Freeze 4",
+             "Jackson Freeze 5")
+Instance <- c("n1-standard-16",
+              "n1-standard-16",
+              "n1-highmen-16",
+              "n1-highmen-16")
+Nodes <- c(rep(10, 4))
+Runtime <- c(14, 32, 30, 23)
+Cost <- c(1.1, 2.6, 2.9, 2.2)
+
+
+table <- data.frame(Project, Instance, Nodes, Runtime, Cost)
+
+knitr::kable(table, caption = "Best cluster configuration based on total cost ($) to conduct GWAS across 4 datasets")
+```
+
+  <div class="columns-2">
+```{r, out.width='100%', echo = FALSE, fig.cap=""}
+
+knitr::include_graphics('/Users/florentinagalliers/Google Drive/Harper/8-C7084/presentation/Figure4.png')
+```
+
+```{r, out.width='100%', echo = FALSE, fig.cap=""}
+
+knitr::include_graphics('/Users/florentinagalliers/Google Drive/Harper/8-C7084/presentation/Figure3.png')
+```
+</div>
