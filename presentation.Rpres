@@ -1,0 +1,162 @@
+Which climate factors affect bird observations in the UK?
+======================================================== 
+author: Florence Galliers
+date: 17/03/2021
+width: 1440
+height: 900
+
+<style>
+.small-code pre code {
+  font-size: 1em;
+}
+</style>
+
+- Problem Outline
+- Objectives
+- Data
+- Approach
+- Comments
+
+The Problem
+========================================================
+An increasing number of species are being added to both local and global red lists for being endangered or threatened. 
+
+In the UK, over half of farmland bird species are on the Red List. This is due to a number of factors including changes in farming practices, increased field sizes and predation.
+
+But have changes in the climate had an impact on the number of bird species that are seen?
+
+![tree sparrow](treesparrow.jpeg) ![corn bunting](cornbunting.jpeg) ![turtle dove](turtledove.jpeg) 
+
+
+
+Objectives
+========================================================
+**Assess which variables are most influential on the number of bird observations**
+
+**Do the number of individual observations and the number of species (species richness) follow the same trends?**
+
+**Do GBIF observations agree with other sources of bird data when it comes to endangered / red list species? E.g. Breeding Bird Survey UK.**
+
+![grey partridge](greypartridge.jpeg) ![yellow wagtail](yellowwagtail.jpeg) ![farmland birds](farmlandbird.jpeg)
+
+Data
+========================================================
+class: small-code
+The **eBird** Dataset is managed by the Cornell Lab of Ornithology, it combines global bird observation data and is accessible via GBIF.
+
+705 million observations worldwide
+
+8 million from the UK. 
+
+I am planning on using a subset of these, but this shows the potential of scaling this analysis up to use a larger datasets.
+
+```{r, echo = F}
+library(dplyr)
+setwd("/Users/florentinagalliers/Downloads/")
+ebird <- read.csv("ebird-gbif2.csv")
+
+ebird2 <- ebird %>%
+  dplyr::select(species, decimalLatitude, decimalLongitude, day, month, year)
+
+head(ebird2)
+
+```
+
+This is just a select few columns, when downloaded from GBIF there are 50 different columns available.
+
+
+Github repo: https://github.com/FlorenceGalliers/big-data
+
+
+Climate Data: Worldclim Bio Variables Dataset.
+=========
+```{r, echo = F}
+variables <- c("BIO1 = Annual Mean Temperature",
+"BIO2 = Mean Diurnal Range (Mean of monthly (max temp - min temp))",
+"BIO3 = Isothermality (BIO2/BIO7) (×100)",
+"BIO4 = Temperature Seasonality (standard deviation ×100)",
+"BIO5 = Max Temperature of Warmest Month",
+"BIO6 = Min Temperature of Coldest Month",
+"BIO7 = Temperature Annual Range (BIO5-BIO6)",
+"BIO8 = Mean Temperature of Wettest Quarter",
+"BIO9 = Mean Temperature of Driest Quarter",
+"BIO10 = Mean Temperature of Warmest Quarter")
+variables1 <- c(
+"BIO11 = Mean Temperature of Coldest Quarter",
+"BIO12 = Annual Precipitation",
+"BIO13 = Precipitation of Wettest Month",
+"BIO14 = Precipitation of Driest Month",
+"BIO15 = Precipitation Seasonality (Coefficient of Variation)",
+"BIO16 = Precipitation of Wettest Quarter",
+"BIO17 = Precipitation of Driest Quarter",
+"BIO18 = Precipitation of Warmest Quarter",
+"BIO19 = Precipitation of Coldest Quarter")
+
+library(kableExtra)
+knitr::kable(variables, col.names = "WorldClim Bio Variables") %>%
+    kable_styling(font_size = 28)
+```
+![worldclim](worldclim.png)
+
+***
+```{r, echo = F}
+knitr::kable(variables1, col.names = "") %>%
+    kable_styling(font_size = 28)
+```
+
+This data can be downloaded in various resolutions. 
+Some of these variables will be highly correlated and so variable selection will take place.
+
+Source: https://www.worldclim.org/data/bioclim.html
+
+Approach
+=========================
+Break down UK into a grid, and assign each square a score for:
+
+1. Number of observations
+
+2. Species richness (number of different species)
+
+3. Species richness of 10 most at risk farmland bird species
+
+(Tree sparrow, Corn bunting, Turtle dove, Grey partridge, Yellow wagtail, Starling, Linnet, Lapwing, Yellowhammer, Skylark)
+***
+![grey partridge](farmland-richness.png)
+
+
+Analysis Ideas
+============
+Create model to show which climate variables are the most influential on the scores.
+
+Regression analysis: linear or generalised linear regression:
+- Poisson regression = uses count data, for the number of observations
+- Use model selection to reduce the number of variables by backward selection
+- Assess models using AIC, and/or other criteria
+
+All analysis will take place within Spark framework.
+
+Comments
+============================
+Have to take into account that this is 'citizen science' observation data and so observations have increased in frequency as technology has become more widely used and accessible.
+
+Example: Tree Sparrow Observations over time in the UK. 
+
+```{r, echo = F, out.width = '50%'}
+
+ebird2$species <- as.factor(ebird2$species)
+
+# filter for tree sparrow
+ebird_summary <- ebird2 %>%
+  filter(species == "Passer montanus") %>%
+  group_by(year) %>%
+  summarise(Count = n())
+
+plot(ebird_summary)
+```
+***
+
+Decide the best resolution to make the grid when I break down the UK. Some options are 100km, 10km, 1km...?
+
+Must also remember that this data does not include every bird that is out there, only ones that have been reported.
+
+Land Use!
