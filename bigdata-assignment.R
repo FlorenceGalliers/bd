@@ -9,6 +9,7 @@ install.packages("rgbif")
 library(rgbif)
 library(dismo)
 library(dplyr)
+library(tidyverse)
 
 puffin <- gbif("Fratercula", "arctica", geo = T)
 
@@ -26,11 +27,13 @@ ebird <- read.csv("ebird-gbif2.csv")
 ebird2 <- ebird %>%
   dplyr::select(species, decimalLatitude, decimalLongitude, day, month, year)
 
+
 ebird2$species <- as.factor(ebird2$species)
 
 tallybird <- ebird2 %>%
   group_by(species, year) %>%
   summarise(count = n())
+
 
 devtools::install_github("azizka/speciesgeocodeR")
 library(speciesgeocodeR)
@@ -51,8 +54,6 @@ gbid_ebird2 <- cbind(ebird2,
                                      y = data.frame(ebird2[,c('decimalLongitude','decimalLatitude')])))
 
 glm()
-
-
 
 
 farmland <- read.csv("farmland-gbif.csv")
@@ -82,3 +83,4 @@ legend("topright",
        title = "No. of Species",
        cex = 0.7)
 
+#### eBird
