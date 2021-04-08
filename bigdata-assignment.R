@@ -3,84 +3,69 @@
 ## Big Data Assignment C7084
 ## 2021-03-16
 
-## Import GBIF Data
+## CONTENTS ####
+# 1.0 Set Up
+# 2.0 Data Imports
+# 3.0 EDA
 
-install.packages("rgbif")
-library(rgbif)
-library(dismo)
+## 1.0 SET UP ####
+# Install packages
+system('java -version')
+library(sparklyr)
+packageVersion('sparklyr')
 library(dplyr)
-library(tidyverse)
+library(geospark)
+library(ggplot2)
+install.packages("sparkR")
 
-puffin <- gbif("Fratercula", "arctica", geo = T)
+# Set up spark connection
+sc <- spark_connect(master = "local", 
+                    version = "2.3")
 
-names(puffin)
+## 2.0 DATA IMPORTS ####
+# Load first GBIF dataset to the spark connection (Tree Sparrow)
 
-puffin$year <- as.factor(puffin$year)
+data <- spark_read_csv(sc, "pm-data.csv")
 
-year_tally <- puffin %>% group_by(year) %>% 
-  summarise(count = n())
+# 3.0 EDA ####
 
-plot(year_tally)
+# Number of observations over time
+count(data) # 14902
 
-ebird <- read.csv("ebird-gbif2.csv")
+# look at average values of all data
+summarise_all(data, mean) 
 
-ebird2 <- ebird %>%
-  dplyr::select(species, decimalLatitude, decimalLongitude, day, month, year)
+# Most are multiple observations, but a lot of NAs
+# do we assume the NAs are single birds, as they must be at the minimum one?
+data %>%
+  mutate(individuals = ifelse(individualCount == 1, "single", "multiple")) %>%
+  group_by(individuals) %>%
+  summarise(Count = n())
 
+data2 <- data %>%
+  select(year, tas, tasmin, tasmax, rainfall, hurs) %>%
+  mutate(tas = as.numeric()) %>%
+  collect()
+         
+count(data2)
 
-ebird2$species <- as.factor(ebird2$species)
-
-tallybird <- ebird2 %>%
-  group_by(species, year) %>%
-  summarise(count = n())
-
-
-devtools::install_github("azizka/speciesgeocodeR")
-library(speciesgeocodeR)
-
-sp.ras <- RichnessGrid(ebird2, reso = 0.1)
-plot(sp.ras)
-
-dir.create("clim_data")
-clim <- getData("worldclim", var="bio", res=10, download=T, path="clim_data")
-
-clim
-
-head(raster::extract(x = clim, 
-                     y = data.frame(ebird2[,c('decimalLongitude','decimalLatitude')])))
-
-gbid_ebird2 <- cbind(ebird2, 
-                     raster::extract(x = clim,
-                                     y = data.frame(ebird2[,c('decimalLongitude','decimalLatitude')])))
-
-glm()
+values <- is.na(data2)
+summary(values)
 
 
-farmland <- read.csv("farmland-gbif.csv")
 
-farmland2 <- farmland %>%
-  dplyr::select(species, decimalLatitude, decimalLongitude, day, month, year)
+data3 <- na.omit(data2)
 
-farmland2$species <- as.factor(farmland2$species)
+ml_corr(data2)
 
 
-colpal <- rev(c("#440154","#482677", "#404788", "#33638D", "#287D8E", "#1F968B", "#29AF7F", "#55C667", "#95D840", "#DCE319"))
+# Disconnect spark connection
+spark_disconnect(sc)
 
-farmland.ras <- RichnessGrid(farmland2, reso = 0.1)
-plot(farmland.ras,
-     bty = "n",
-     xaxt = "n",
-     yaxt = "n",
-     main = "Species Richness of 10 Farmland Birds in the UK",
-     col = colpal,
-     legend = F)
-box(col = "white",
-    lwd = 3)
-legend("topright",
-       legend = c(10:1),
-       fill = rev(colpal),
-       bty = "n",
-       title = "No. of Species",
-       cex = 0.7)
 
-#### eBird
+
+
+
+
+
+
