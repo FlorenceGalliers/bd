@@ -1,0 +1,55 @@
+---
+title: "c7084-report"
+author: "Florence Galliers"
+date: "08/04/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+system('java -version')
+packageVersion('sparklyr')
+library(sparklyr)
+library(dplyr)
+library(geospark)
+library(ggplot2)
+library(corrr)
+
+# Set up spark connection
+sc <- spark_connect(master = "local", 
+                    version = "2.3")
+# Load dataset to the spark connection
+data <- spark_read_csv(sc, "final-data.csv")
+```
+
+## Introduction
+
+## Visualise
+```{r}
+
+```
+
+
+## Model
+```{r}
+
+```
+
+
+## Results
+```{r}
+
+
+
+
+
+
+# Disconnect spark connection
+spark_disconnect(sc)
+```
+
+## Discussion
+
+
+
+## References
